@@ -1,26 +1,30 @@
-﻿int choice = LoadMainMenu();
-switch (choice)
+﻿while(true)
 {
-    case 1: 
-        GameOfSticks();
-        break;
-    case 2: 
-        MasterMind();
-        break;
-    case 3:
-        MadLibs();
-        break;
-    case 4:
-        PigLatin();
-        break;
-    case 5:
-        TypingTrainer();
-        break;
-    case 6:
-        Maze();
-        break;
-    default:
-        break;
+    int choice = LoadMainMenu();
+    switch (choice)
+    {
+        case 1: 
+            GameOfSticks();
+            break;
+        case 2: 
+            MasterMind();
+            break;
+        case 3:
+            MadLibs();
+            break;
+        case 4:
+            PigLatin();
+            break;
+        case 5:
+            TypingTrainer();
+            break;
+        case 6:
+            Maze();
+            break;
+        default:
+            Environment.Exit(0);
+            break;
+    }
 }
 static void GameOfSticks()
 {
@@ -124,7 +128,146 @@ static void GameOfSticks()
     }
 }
 static void MasterMind()
-{}
+{
+    DisplayTheRules();
+    string codeWord = GenerateAWord();
+    Console.Clear();
+    string userGuess = "";
+    int numGuesses = 0;
+    while(codeWord != userGuess)
+    {
+        numGuesses ++;
+        userGuess = ValidateUserGuess(numGuesses,codeWord.Length);
+        for(int i = 0; i < codeWord.Length; i++)
+        {
+            ConsoleColor color = GetColor(userGuess[i],codeWord,i);
+            Console.ForegroundColor = color;
+            Console.Write(userGuess[i]);
+            Console.ForegroundColor = ConsoleColor.White;            
+        }
+    }
+    Console.WriteLine($"\nCongrats you solved it in {numGuesses}\n");
+    Console.Write("Would you care to play again? ");
+    char playAgain = Console.ReadKey(true).KeyChar;
+    if(playAgain == 'y' || playAgain == 'Y')
+        MasterMind();
+    static void DisplayTheRules()
+    {
+        Console.Clear();
+        string rules = @"
+        We will generate a random word with no duplicate letters. Your job will be
+        to guess that word in as few guesses as possible.
+        
+        Press any key to continue.";
+        Console.Write(rules);
+        Console.ReadKey(true);
+        Console.Clear();
+     }
+    static string GenerateAWord()
+    {
+        string code ="";
+        Random rand = new Random();
+        int codeLength = GetCodeLength();
+        for (int i = 0; i< codeLength; i ++)
+        {
+            bool successful = false;
+            while (!successful)
+            {
+                char letter = (char)rand.Next(97,97+5+codeLength);
+                if (code.Length == 0)
+                    {
+                        code += letter;
+                        successful = true;
+                    }
+                else
+                {
+                    bool repeat = false;
+                    for (int j = 0; j<code.Length;j++)
+                    {
+                        if (letter == code[j] )
+                            repeat = true;
+                    }
+                    if (repeat == false)
+                    {
+                        code += letter;
+                        successful = true;
+                    }
+                    
+                }
+
+            }
+        }
+        return code;
+
+        static int GetCodeLength()
+    {
+        string explain = @"
+        Please select a level of difficulty
+        
+        1) Easy (four letters)
+        2) Normal (five letters)
+        3) Hard (six letters)";
+        Console.Clear();
+        Console.Write(explain);
+        char choice = Console.ReadKey(true).KeyChar;
+        if(choice == '1')
+            return 4;
+        else if (choice == '3')
+            return 6;
+        else    
+            return 5;
+    }
+    }
+    static string ValidateUserGuess(int numGuesses,int size)
+    {
+        Console.WriteLine();
+        Console.Write($"Please enter guess number {numGuesses} ");
+        string? userGuess = Console.ReadLine();
+        userGuess = userGuess.ToLower();
+        if(userGuess.Length != size)
+            Console.WriteLine($"Your guess must contain exactly {size} letters.");
+        else
+        {
+            for (int i = 0; i<size; i ++)
+            {
+                // Check for acceptable letters
+                if(!"abcdefghijklmnopqrstuvwxyz".Contains(userGuess[i]))
+                {
+                    Console.WriteLine($"Your guess must contain only letters");
+                    break;
+                }
+                else
+                {
+                    int frequency = 0;
+                    for (int j = 0; j<size; j++)
+                    {
+                        if(userGuess[i] == userGuess[j])
+                            frequency ++;
+                    }
+                    if (frequency == 1)
+                        return userGuess;
+                    else
+                    {
+                        Console.WriteLine("You can only use each letter once in your guess");
+                        break;
+                    }
+                }
+            }
+        }
+        return userGuess;
+    }
+    static ConsoleColor GetColor(char letter, string code,int position)
+    {
+        for(int i = 0; i<code.Length; i++)
+        {
+            if(code[i] == letter && i == position)
+                return ConsoleColor.Green;
+            if(code[i] == letter)
+                return ConsoleColor.Red;
+        }
+        return ConsoleColor.White;
+    }
+}
 static void MadLibs()
 {}
 static void PigLatin()
@@ -154,10 +297,8 @@ static int LoadMainMenu()
     {
         string option = Console.ReadKey(true).KeyChar.ToString();
         successful = Int32.TryParse(option,out x);
-        if(successful && x <= 6 && x >=1)
-            return x;
-        else if (successful)
-            successful = false;   
+        if(successful)
+            return x;        
     }
     return 0;
 }
